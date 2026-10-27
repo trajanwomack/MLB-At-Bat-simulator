@@ -1,0 +1,6 @@
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.ipynb text eol=lf
+# Raw references and checksum-verified snapshots must retain exact bytes on Windows too.
+datasets/** -text -whitespace

@@ -1,0 +1,2 @@
+# Notebook execution in the VS Code Python environment.
+ipykernel==6.30.1

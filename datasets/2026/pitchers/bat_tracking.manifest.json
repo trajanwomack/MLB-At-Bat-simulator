@@ -1,0 +1,12 @@
+{
+  "source_type": "user_uploaded_pitcher_export",
+  "category": "bat_tracking",
+  "original_filename": "2026_pitcher_battracking_10innings.csv",
+  "sha256": "035d8ad28becae78c847f3afa1dd00c8aea87eb6cf92b011dedafd1aaaaee894",
+  "rows": 649,
+  "bytes": 55704,
+  "archived_at_utc": "2026-10-22T19:49:41.756655+00:00",
+  "export_url": null,
+  "data_as_of": null,
+  "game_type": null
+}

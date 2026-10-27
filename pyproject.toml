@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mlb-at-bat-simulator"
+version = "0.1.0"
+description = "Traceable Baseball Savant ingestion and conservative pitch-data cleaning"
+requires-python = ">=3.11"
+dependencies = ["pandas==2.2.3", "pyarrow==21.0.0"]
+
+[project.optional-dependencies]
+dev = ["pytest==8.4.2"]
+
+[project.scripts]
+mlb-data = "mlb_at_bat.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
