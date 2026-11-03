@@ -1,1 +1,1 @@
-"""MLB data tools and statistical pitch selection. No ML fitting is performed."""
+"""MLB data tools, pitch selection, and hitter outcome baselines. No ML fitting."""

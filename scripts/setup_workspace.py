@@ -50,6 +50,9 @@ def main():
         '--arsenal', reference/'views/pitch_arsenal_types.csv',
         '--pitchers', reference/'views/pitchers.csv',
         '--output', root/'data/processed/pitch_selection_2026')
+    run(python, '-m', 'mlb_at_bat.cli', 'build-hitter-baseline',
+        '--hitters', reference/'views/hitters.csv',
+        '--output', root/'data/processed/hitter_outcomes_2026', '--min-pa', '100')
     run(python, '-m', 'pytest', '-q')
     print('Workspace prepared. Open exploratory analysis.py and use Run Cell with the .venv kernel.')
 

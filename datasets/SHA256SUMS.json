@@ -1,4 +1,7 @@
 {
+  "2026/baselines/hitter_outcomes/hitter_outcome_probabilities.csv": "8992446f085a6fe6a11181a2c5749c378e15b0df7ea46c8a3195b538efa1e3bc",
+  "2026/baselines/hitter_outcomes/hitter_outcome_profiles.csv": "8df302347d949895b8b46666cb2eca82f8e0a828fb43d803b1a0ff18055b3e4c",
+  "2026/baselines/hitter_outcomes/quality_report.json": "f799b1f950e3d81c477c1b5452a93a3e0e67a18c65bda947374d2e0686248aea",
   "2026/baselines/pitch_selection_probabilities.csv": "fe30a76683dea6de1b0fa78228976f939e2538ed2ce91df1c2fcc210bf3ee2ed",
   "2026/baselines/pitcher_repertoires.csv": "edee7fcdc9fb4e6aa87f95b756e366d748201e2d2419b1621790ce2e69e3430b",
   "2026/baselines/quality_report.json": "85d7fdbca9a8bc8753abb6f304f7e1102e47325c54170bb6cfc9c547a061ca54",

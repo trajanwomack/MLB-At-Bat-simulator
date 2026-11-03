@@ -1,4 +1,4 @@
-"""Clean baseball data and run the season-repertoire pitch-selection baseline."""
+"""Clean baseball data and run pitcher-repertoire and hitter-outcome baselines."""
 
 import argparse
 import hashlib
@@ -13,6 +13,7 @@ from .pitcher_seasons import clean_pitcher_summary
 from .pitcher_exports import clean_pitcher_exports
 from .hitter_exports import clean_hitter_exports, KINDS as HITTER_KINDS
 from .pitch_selection import compare_pitch_frequencies, load_pitch_baseline, write_pitch_baseline
+from .hitter_outcomes import compare_outcome_frequencies, load_hitter_baseline, write_hitter_baseline
 
 
 def main(argv=None) -> int:
@@ -58,6 +59,17 @@ def main(argv=None) -> int:
     simulate.add_argument("--seed", type=int, default=None)
     simulate.add_argument("--output", type=Path,
         help="Optional directory for sampled_pitches.csv and frequency_comparison.csv")
+    hitter_baseline = commands.add_parser("build-hitter-baseline", help="Export hitter PA outcome probabilities and quality")
+    sample_pa = commands.add_parser("sample-plate-appearances", help="Sample hitter PA outcomes without opponent context")
+    for command in (hitter_baseline, sample_pa):
+        command.add_argument("--hitters", type=Path, default=Path("datasets/2026/views/hitters.csv"))
+        command.add_argument("--min-pa", type=int, default=100, help="Review flag only; no players are excluded")
+    hitter_baseline.add_argument("--output", type=Path, default=Path("data/processed/hitter_outcomes_2026"))
+    sample_pa.add_argument("--player-id", type=int, required=True)
+    sample_pa.add_argument("--season", type=int, required=True)
+    sample_pa.add_argument("--n-pa", type=int, default=100)
+    sample_pa.add_argument("--seed", type=int, default=None)
+    sample_pa.add_argument("--output", type=Path, help="Optional directory for sample, comparison, and seed metadata")
     args = parser.parse_args(argv)
     try:
         if args.command == "fetch":
@@ -114,6 +126,38 @@ def main(argv=None) -> int:
                     json.dumps(metadata, indent=2) + "\n", encoding="utf-8", newline="\n"
                 )
                 print(f"Simulation tables: {args.output}")
+        elif args.command == "build-hitter-baseline":
+            report = write_hitter_baseline(args.hitters, args.output, min_pa=args.min_pa)
+            print(json.dumps({key: report[key] for key in ["hitter_seasons", "outcome_rows",
+                "available_hitter_seasons", "quality_status_counts", "meets_min_pa", "below_min_pa_retained"]}, indent=2))
+            print(f"Hitter baseline tables and quality report: {args.output}")
+        elif args.command == "sample-plate-appearances":
+            baseline_model = load_hitter_baseline(args.hitters, min_pa=args.min_pa)
+            distribution = baseline_model.distribution(args.player_id, args.season)
+            samples = baseline_model.sample_plate_appearances(
+                args.player_id, args.season, n_pa=args.n_pa, seed=args.seed
+            )
+            comparison = compare_outcome_frequencies(distribution, samples)
+            print(f"{distribution.player_name.iloc[0]} ({args.player_id}/{args.season}): "
+                  f"{len(samples)} hypothetical plate appearances; seed={args.seed}")
+            print(comparison[["outcome", "pa", "outcome_count", "probability", "sampled_count",
+                "sampled_percent", "difference_percentage_points"]].to_string(index=False))
+            if args.output is not None:
+                if (args.output.resolve() == args.hitters.resolve().parent
+                        or args.output.resolve() in args.hitters.resolve().parents):
+                    raise ValueError("Output must not contain the source input")
+                args.output.mkdir(parents=True, exist_ok=True)
+                samples.to_csv(args.output / "sampled_plate_appearances.csv", index=False, lineterminator="\n")
+                comparison.to_csv(args.output / "outcome_frequency_comparison.csv", index=False, lineterminator="\n")
+                metadata = {"baseline_type": "season_hitter_outcomes", "player_id": args.player_id,
+                    "season": args.season, "n_pa": args.n_pa, "seed": args.seed,
+                    "min_pa_flag_threshold": args.min_pa,
+                    "sources": {"hitters": {"filename": args.hitters.name,
+                        "sha256": hashlib.sha256(args.hitters.read_bytes()).hexdigest()}}}
+                (args.output / "simulation.json").write_text(
+                    json.dumps(metadata, indent=2) + "\n", encoding="utf-8", newline="\n"
+                )
+                print(f"Plate-appearance sample tables: {args.output}")
         else:
             inputs = []
             for path in args.input:

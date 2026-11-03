@@ -18,6 +18,7 @@ from pathlib import Path
 import pandas as pd
 
 from mlb_at_bat.pitch_selection import build_pitch_baseline, compare_pitch_frequencies
+from mlb_at_bat.hitter_outcomes import build_hitter_baseline, compare_outcome_frequencies
 
 # __file__ is available when running the script; the working directory also
 # supports running individual cells in the VS Code Interactive Window.
@@ -82,6 +83,13 @@ hitter_tables = {
     for name in ("standard", "statcast", "contact", "location", "bat_tracking")
 }
 
+# %% Hitter outcome baseline: counts divided by PA, with all hitters retained
+hitter_baseline = build_hitter_baseline(df_hitters, min_pa=MIN_PA)
+df_hitter_outcome_probabilities = hitter_baseline.probabilities
+df_hitter_outcome_profiles = hitter_baseline.profiles
+# Other PA outcome is a remainder, not necessarily an out. Walks already include
+# intentional walks. Missing/inconsistent counts produce unavailable profiles.
+
 # %% Catcher, running, and fielding measurements remain separate
 # Each export includes rows with no measurements. Retain those rows, using
 # has_metrics to distinguish measured coverage from mere file membership.
@@ -104,6 +112,8 @@ analysis_tables = {
     "pitch_repertoires": df_pitch_repertoires,
     "hitters": df_hitters,
     "hitters_min_pa": df_hitters_min_pa,
+    "hitter_outcome_probabilities": df_hitter_outcome_probabilities,
+    "hitter_outcome_profiles": df_hitter_outcome_profiles,
     "catchers": df_catchers,
     "running": df_running,
     "catch_probability": df_catch_probability,
@@ -181,6 +191,32 @@ df_pitch_frequency_comparison[[
 
 # %% Inspect quality and sample sizes across all repertoires
 df_pitch_repertoires.groupby("quality_status").size()
+
+# %% Choose a hitter and inspect their observed plate-appearance distribution
+HITTER_ID = 592450  # Aaron Judge; try 660271 for Shohei Ohtani
+HITTER_SEASON = 2026
+df_selected_hitter_distribution = hitter_baseline.distribution(HITTER_ID, HITTER_SEASON)
+df_selected_hitter_distribution[[
+    "player_name", "outcome", "pa", "outcome_count", "probability", "meets_min_pa",
+]]
+
+# %% Simulate 100 independent plate appearances from that hitter's season rates
+# There is no pitcher adjustment or connection to the pitch sampler yet.
+N_PA = 100
+HITTER_RANDOM_SEED = 42
+df_sampled_plate_appearances = hitter_baseline.sample_plate_appearances(
+    HITTER_ID, HITTER_SEASON, n_pa=N_PA, seed=HITTER_RANDOM_SEED
+)
+df_hitter_outcome_comparison = compare_outcome_frequencies(
+    df_selected_hitter_distribution, df_sampled_plate_appearances
+)
+df_hitter_outcome_comparison[[
+    "outcome", "probability", "expected_count", "sampled_count", "sampled_percent",
+    "difference_percentage_points",
+]]
+
+# %% Review baseline coverage and sample-size flags
+df_hitter_outcome_profiles.groupby(["quality_status", "meets_min_pa"]).size()
 
 # %% Your analysis
 # Example expressions to uncomment, run, and modify:

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mlb-at-bat-simulator"
 version = "0.1.0"
-description = "Traceable Baseball Savant cleaning and reusable pitch-selection baseline"
+description = "Traceable Baseball Savant cleaning, pitch selection, and hitter outcome baselines"
 requires-python = ">=3.11"
 dependencies = ["pandas==2.2.3", "pyarrow==21.0.0"]
 

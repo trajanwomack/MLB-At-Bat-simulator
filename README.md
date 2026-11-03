@@ -16,9 +16,9 @@ python scripts/setup_workspace.py
 On Windows, `py -3.12 scripts/setup_workspace.py` also selects Python 3.12.
 On macOS/Linux, use `python3.12 scripts/setup_workspace.py` if `python` does
 not select that version. The script creates a local `.venv`, installs pinned
-dependencies, regenerates both dataset groups and pitch-selection probabilities,
-and runs the tests. It does
-not require Savant access or credentials. Select the `.venv` Python interpreter
+dependencies, regenerates cleaned datasets and both statistical baselines,
+and runs the tests. It does not require Savant access or credentials.
+Select the `.venv` Python interpreter
 and notebook kernel in VS Code afterward.
 
 You can browse the versioned CSVs immediately, before setup:
@@ -28,19 +28,20 @@ You can browse the versioned CSVs immediately, before setup:
 - `datasets/2026/views/hitters_min_100_pa.csv`: the 465-player review subset.
 - `datasets/2026/views/pitch_arsenal_types.csv`: 3,174 pitcher–pitch-type rows.
 - `datasets/2026/baselines/`: pitch-selection probabilities and repertoire coverage.
+- `datasets/2026/baselines/hitter_outcomes/`: hitter PA outcome probabilities and profiles.
 - `datasets/2026/pitchers/` and `datasets/2026/hitters/`: original inputs.
 - `notebooks/01_data_review.ipynb`: a guided view of the tables and flags.
-- `exploratory analysis.py`: run individual cells for player EDA and pitch sampling.
+- `exploratory analysis.py`: run cells for EDA, pitch sampling, and hitter PA outcomes.
 
 Reference CSVs and baseline review snapshots are versioned. `.venv/`, caches, and regenerated
 working outputs under `data/` remain ignored. The older cloud-only paths below
 are historical setup instructions; use this section for local VS Code setup.
-The setup script builds a statistical repertoire baseline; no ML model is fitted.
+The setup script builds pitcher and hitter statistical baselines; no ML model is fitted.
 
 The first milestone is a traceable Baseball Savant dataset for next-pitch
 prediction and batter–pitcher outcome statistics. This repository currently
 provides ingestion, conservative cleaning, quality reports, exploratory analysis,
-and a reusable pitch-selection baseline. It does not fit an ML model or run a
+and reusable pitch-selection and hitter-outcome baselines. It does not fit an ML model or run a
 web application yet.
 
 ## Pitch-selection baseline
@@ -60,9 +61,31 @@ python -m mlb_at_bat.cli sample-pitches --player-id 453286 --season 2026 --n-pit
 
 All 649 pitchers currently have usable distributions across 3,174 reported
 pitch-type rows. These are independent pitch selections from season usage;
-count, hitter context, pitch results, and plate-appearance outcomes are later
-steps. See [the reusable API and data rules](docs/pitch-selection.md) and
+count, hitter context, and pitch results are later steps. The separate hitter
+baseline below is not yet connected to this pitch sampler.
+See [the reusable API and data rules](docs/pitch-selection.md) and
 [the 2026 baseline review](reports/pitch-selection-2026.md).
+
+## Hitter outcome baseline
+
+The hitter baseline calculates strikeout, walk, HBP, single, double, triple,
+home-run, and other-PA-outcome probabilities from counts divided by PA. All
+630 hitter profiles remain available, including 165 below the optional 100-PA
+comparison threshold. Source counts remain unchanged; inconsistent or missing
+counts produce an unavailable status instead of invented probabilities.
+
+Use the hitter-selection cells in `exploratory analysis.py`, or run:
+
+```bash
+python -m mlb_at_bat.cli build-hitter-baseline
+python -m mlb_at_bat.cli sample-plate-appearances --player-id 592450 --season 2026 --n-pa 100 --seed 42
+```
+
+These are independent hypothetical plate appearances based on a hitter's
+observed season rates, with no pitcher adjustment. The remaining-outcome
+category includes ordinary outs and other events; it is not labeled an out.
+See [the API and outcome rules](docs/hitter-outcomes.md) and
+[the 2026 hitter baseline review](reports/hitter-outcomes-2026.md).
 
 Use the existing checkout in this isolated cloud task; do not create a Git
 worktree for ordinary development.

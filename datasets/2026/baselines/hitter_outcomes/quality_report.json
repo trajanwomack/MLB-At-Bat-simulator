@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "baseline_type": "season_hitter_outcomes",
+  "conditioning_variables": [
+    "player_id",
+    "season"
+  ],
+  "outcome_categories": [
+    "strikeout",
+    "walk",
+    "hit_by_pitch",
+    "single",
+    "double",
+    "triple",
+    "home_run",
+    "other_pa_outcome"
+  ],
+  "hitter_seasons": 630,
+  "outcome_rows": 5040,
+  "available_hitter_seasons": 630,
+  "quality_status_counts": {
+    "ready": 630
+  },
+  "min_pa_flag_threshold": 100,
+  "meets_min_pa": 465,
+  "below_min_pa_retained": 165,
+  "missing_pa": 0,
+  "hit_component_mismatches": 0,
+  "negative_remainders": 0,
+  "sources": {
+    "hitters": {
+      "filename": "hitters.csv",
+      "sha256": "39e7b334c8e9c671f9b1039773ba53c2ffb3ea87dc815c3e8b3ef0f80956f82c"
+    }
+  },
+  "notes": [
+    "Each usable probability is an outcome count divided by plate appearances, not at-bats.",
+    "Walk counts already include intentional walks; no intentional-walk count is added.",
+    "Other PA outcome is PA minus strikeouts, walks, HBP, and hits; it is not labeled an out.",
+    "Missing counts are not zeros; inconsistent rows remain visible with null probabilities.",
+    "No smoothing, probability normalization, or low-PA exclusions are applied.",
+    "Samples are independent hypothetical plate appearances, with no pitcher or pitch context.",
+    "Season exports have no verified as-of date; no historical predictive performance is claimed."
+  ]
+}

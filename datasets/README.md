@@ -21,10 +21,17 @@ quality. The report includes hashes of the cleaned inputs. These are statistical
 baselines, not observed pitch records or fitted ML outputs. See
 `docs/pitch-selection.md` for regeneration and missing-data rules.
 
+`2026/baselines/hitter_outcomes/` contains the hitter outcome probability and
+profile CSV snapshots plus their own `quality_report.json`. These count-based
+probabilities use PA as the denominator and retain all eight outcomes for every
+hitter. The profiles retain counts, reconciliation checks, and sample-size
+flags. The residual outcome is not classified as an out. See
+`docs/hitter-outcomes.md` for reproduction and interpretation.
+
 `SHA256SUMS.json` verifies the included input, manifest, and snapshot bytes.
 Run `python scripts/setup_workspace.py` from the repository root to install
 dependencies, verify archives and snapshots, regenerate cleaned tables and
-pitch-selection probabilities under ignored `data/`,
+pitch-selection and hitter-outcome probabilities under ignored `data/`,
 and run the regression suite. The reference snapshots remain unchanged.
 
 See the audit reports under `reports/` for scope, sample sizes, unresolved
