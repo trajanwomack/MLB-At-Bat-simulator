@@ -17,6 +17,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from mlb_at_bat.pitch_selection import build_pitch_baseline, compare_pitch_frequencies
+
 # __file__ is available when running the script; the working directory also
 # supports running individual cells in the VS Code Interactive Window.
 START = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
@@ -60,6 +62,13 @@ pitcher_tables = {
     for name in ("bat_tracking", "contact", "location", "arsenal")
 }
 
+# %% Reusable pitch-selection baseline: lookup tables, no random sampling yet
+pitch_baseline = build_pitch_baseline(df_pitcher_arsenal, pitchers=df_pitchers)
+df_pitch_probabilities = pitch_baseline.probabilities
+df_pitch_repertoires = pitch_baseline.repertoires
+# Source usage_percent is unchanged. sampling_probability sums to one for each
+# available pitcher-season. Unavailable repertoires retain null probabilities.
+
 # %% Hitters: regular stats through Statcast and bat tracking in one dataframe
 df_hitters = load_cleaned(HITTER_DATA, "hitter_master")
 
@@ -91,6 +100,8 @@ df_catchers_measured = df_catchers.loc[df_catchers["has_metrics"]].copy()
 analysis_tables = {
     "pitchers": df_pitchers,
     "pitcher_arsenal": df_pitcher_arsenal,
+    "pitch_probabilities": df_pitch_probabilities,
+    "pitch_repertoires": df_pitch_repertoires,
     "hitters": df_hitters,
     "hitters_min_pa": df_hitters_min_pa,
     "catchers": df_catchers,
@@ -142,6 +153,34 @@ df_pitchers.head()
 
 # %% Explore the measured catcher subset
 df_catchers_measured.head()
+
+# %% Choose a pitcher and inspect the baseline probabilities
+# Change the ID to any player_id in df_pitchers. Names are labels, not join keys.
+PITCHER_ID = 453286  # Max Scherzer; try 445276 for Kenley Jansen
+SEASON = 2026
+df_selected_repertoire = pitch_baseline.repertoire(PITCHER_ID, SEASON)
+df_selected_repertoire[[
+    "player_name", "pitch_type", "usage_percent", "sampling_probability",
+    "arsenal_pitch_total", "quality_status",
+]]
+
+# %% Sample pitch selections, then compare the mix with the baseline
+# These are independent PITCHES, not completed at-bats or observed game events.
+N_PITCHES = 10000
+RANDOM_SEED = 42
+df_sampled_pitches = pitch_baseline.sample_pitches(
+    PITCHER_ID, SEASON, n_pitches=N_PITCHES, seed=RANDOM_SEED
+)
+df_pitch_frequency_comparison = compare_pitch_frequencies(
+    df_selected_repertoire, df_sampled_pitches
+)
+df_pitch_frequency_comparison[[
+    "pitch_type", "usage_percent", "sampling_probability", "sampled_count",
+    "sampled_percent", "difference_percentage_points",
+]]
+
+# %% Inspect quality and sample sizes across all repertoires
+df_pitch_repertoires.groupby("quality_status").size()
 
 # %% Your analysis
 # Example expressions to uncomment, run, and modify:

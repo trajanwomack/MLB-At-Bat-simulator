@@ -13,9 +13,18 @@ arsenal table. These are generated from the reference inputs, not extra
 independent datasets or training labels. Their CSV columns retain source scales
 and documented missingness. They have no new preprocessing or model fitting.
 
+`2026/baselines/` contains derived pitch-selection review snapshots:
+`pitch_selection_probabilities.csv`, `pitcher_repertoires.csv`, and
+`quality_report.json`. The probability table retains original usage alongside
+normalized sampling probabilities; the repertoire table reports coverage and
+quality. The report includes hashes of the cleaned inputs. These are statistical
+baselines, not observed pitch records or fitted ML outputs. See
+`docs/pitch-selection.md` for regeneration and missing-data rules.
+
 `SHA256SUMS.json` verifies the included input, manifest, and snapshot bytes.
 Run `python scripts/setup_workspace.py` from the repository root to install
-dependencies, verify archives, regenerate working tables under ignored `data/`,
+dependencies, verify archives and snapshots, regenerate cleaned tables and
+pitch-selection probabilities under ignored `data/`,
 and run the regression suite. The reference snapshots remain unchanged.
 
 See the audit reports under `reports/` for scope, sample sizes, unresolved

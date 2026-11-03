@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "baseline_type": "season_repertoire",
+  "conditioning_variables": [
+    "player_id",
+    "season"
+  ],
+  "usage_decimal_places": 1,
+  "pitcher_seasons": 649,
+  "pitch_type_rows": 3174,
+  "available_pitcher_seasons": 649,
+  "quality_status_counts": {
+    "normalized_rounding": 249,
+    "ready": 400
+  },
+  "zero_usage_rows": 5,
+  "pitcher_seasons_missing_pitch_total": 0,
+  "sources": {
+    "arsenal": {
+      "filename": "pitch_arsenal_types.csv",
+      "sha256": "6f7ff986910cde1832fd4feacb075a03e1f1df53409c883e1c8606d2810f5d56"
+    },
+    "pitchers": {
+      "filename": "pitchers.csv",
+      "sha256": "389c53b2ca7fd054297adc60df9f856052cd4715032c2cd7d7d39b0b8e8e9a18"
+    }
+  },
+  "notes": [
+    "Source usage percentages are preserved; only sampling probabilities are normalized.",
+    "Rounding tolerance is 0.05 percentage points per reported pitch type.",
+    "Missing or materially incomplete repertoires cannot be sampled.",
+    "Missing pitch totals remain missing; no per-type observed counts are reconstructed.",
+    "Selections are independent; count, hitter, and pitch history are not modeled.",
+    "These season summaries have no verified as-of date and are not historical pre-pitch features.",
+    "No ML fitting, game-outcome simulation, or predictive evaluation is performed."
+  ]
+}

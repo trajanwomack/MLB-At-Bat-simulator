@@ -16,7 +16,8 @@ python scripts/setup_workspace.py
 On Windows, `py -3.12 scripts/setup_workspace.py` also selects Python 3.12.
 On macOS/Linux, use `python3.12 scripts/setup_workspace.py` if `python` does
 not select that version. The script creates a local `.venv`, installs pinned
-dependencies, regenerates both dataset groups, and runs the tests. It does
+dependencies, regenerates both dataset groups and pitch-selection probabilities,
+and runs the tests. It does
 not require Savant access or credentials. Select the `.venv` Python interpreter
 and notebook kernel in VS Code afterward.
 
@@ -26,18 +27,42 @@ You can browse the versioned CSVs immediately, before setup:
 - `datasets/2026/views/hitters.csv`: all 630 hitter profiles.
 - `datasets/2026/views/hitters_min_100_pa.csv`: the 465-player review subset.
 - `datasets/2026/views/pitch_arsenal_types.csv`: 3,174 pitcher–pitch-type rows.
+- `datasets/2026/baselines/`: pitch-selection probabilities and repertoire coverage.
 - `datasets/2026/pitchers/` and `datasets/2026/hitters/`: original inputs.
 - `notebooks/01_data_review.ipynb`: a guided view of the tables and flags.
+- `exploratory analysis.py`: run individual cells for player EDA and pitch sampling.
 
-Only the small reference CSVs are versioned. `.venv/`, caches, and regenerated
+Reference CSVs and baseline review snapshots are versioned. `.venv/`, caches, and regenerated
 working outputs under `data/` remain ignored. The older cloud-only paths below
 are historical setup instructions; use this section for local VS Code setup.
-Model design and training are paused; no model is fitted by the setup script.
+The setup script builds a statistical repertoire baseline; no ML model is fitted.
 
 The first milestone is a traceable Baseball Savant dataset for next-pitch
 prediction and batter–pitcher outcome statistics. This repository currently
-provides ingestion, conservative cleaning, quality reports, and regression
-tests. It does not train a model or run a web application yet.
+provides ingestion, conservative cleaning, quality reports, exploratory analysis,
+and a reusable pitch-selection baseline. It does not fit an ML model or run a
+web application yet.
+
+## Pitch-selection baseline
+
+Open `exploratory analysis.py` and use **Run Cell** with the `.venv` interpreter.
+The pitch-selection sections let you choose a pitcher, inspect their repertoire,
+and compare seeded pitch samples with the baseline probabilities. Original
+usage percentages remain unchanged; small rounding differences are normalized
+only for sampling. Unavailable or incomplete repertoires are explicitly marked.
+
+With the `.venv` interpreter active, run from the repository root:
+
+```bash
+python -m mlb_at_bat.cli build-pitch-baseline
+python -m mlb_at_bat.cli sample-pitches --player-id 453286 --season 2026 --n-pitches 10000 --seed 42
+```
+
+All 649 pitchers currently have usable distributions across 3,174 reported
+pitch-type rows. These are independent pitch selections from season usage;
+count, hitter context, pitch results, and plate-appearance outcomes are later
+steps. See [the reusable API and data rules](docs/pitch-selection.md) and
+[the 2026 baseline review](reports/pitch-selection-2026.md).
 
 Use the existing checkout in this isolated cloud task; do not create a Git
 worktree for ordinary development.

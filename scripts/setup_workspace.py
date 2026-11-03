@@ -46,8 +46,12 @@ def main():
         command += ['--'+name.replace('_','-'), reference / 'hitters' / f'{name}.csv']
     run(*command, '--raw-output', root/'data/raw/hitter_exports_2026',
         '--output', root/'data/processed/hitter_exports_2026', '--min-pa', '100')
+    run(python, '-m', 'mlb_at_bat.cli', 'build-pitch-baseline',
+        '--arsenal', reference/'views/pitch_arsenal_types.csv',
+        '--pitchers', reference/'views/pitchers.csv',
+        '--output', root/'data/processed/pitch_selection_2026')
     run(python, '-m', 'pytest', '-q')
-    print('Workspace prepared. Open notebooks/01_data_review.ipynb with the .venv kernel.')
+    print('Workspace prepared. Open exploratory analysis.py and use Run Cell with the .venv kernel.')
 
 
 if __name__ == '__main__':

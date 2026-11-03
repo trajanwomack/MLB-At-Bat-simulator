@@ -1,1 +1,1 @@
-"""MLB at-bat simulator data tools. No model training is performed here."""
+"""MLB data tools and statistical pitch selection. No ML fitting is performed."""
