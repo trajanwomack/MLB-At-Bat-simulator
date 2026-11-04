@@ -145,8 +145,23 @@ checks the CSV shape and returned game dates, and stores immutable raw files
 plus manifests. TLS verification remains enabled. It fails explicitly on an
 HTTP error and never silently substitutes the historical fixture. Previously
 downloaded days can be reused after verifying their manifests and hashes.
-The current environment's proxy returns HTTP 403 for Savant despite its
-presence in the saved allowlist; recent live data has not been validated.
+Savant detail downloads were successfully validated in November 2026. Earlier
+sessions encountered proxy HTTP 403 responses; availability can vary by host
+and session. The MLB schedule API remains unavailable from this environment.
+
+For a resumable season acquisition with two workers, bounded resource use,
+daily source manifests, and a streamed combined CSV archive, see
+[the season acquisition workflow](docs/season-acquisition.md):
+
+```bash
+python scripts/acquire_season.py --season 2026 --through 2026-11-03 --workers 2 --raw data/raw/savant_2026_regular --output data/acquisition/savant_2026_regular
+```
+
+The pitch records remain separate from the player-summary exports and model
+baselines. Large acquired data is preserved separately from Git.
+The [2026 acquisition review](reports/2026-season-acquisition.md) records the
+completed export: 716,792 pitch/event rows across 2,429 played games, including
+the coverage reconciliation for a cancelled Orioles–Yankees game.
 
 You can also import a CSV exported manually from Savant's search interface:
 
