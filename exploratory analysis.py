@@ -218,6 +218,45 @@ df_hitter_outcome_comparison[[
 # %% Review baseline coverage and sample-size flags
 df_hitter_outcome_profiles.groupby(["quality_status", "meets_min_pa"]).size()
 
+# %% Game-log tables: a week of the season, or the small versioned review sample
+GAME_TABLE_DATA = ROOT / 'data/processed/game_logs_2026'
+GAME_START = '2026-06-01'
+GAME_END = '2026-06-07'
+if (GAME_TABLE_DATA / 'quality_report.json').is_file():
+    game_filters = [
+        ('game_date', '>=', pd.Timestamp(GAME_START)),
+        ('game_date', '<=', pd.Timestamp(GAME_END)),
+    ]
+    df_pitch_events = pd.read_parquet(GAME_TABLE_DATA / 'pitch_events.parquet', filters=game_filters)
+    df_plate_appearances = pd.read_parquet(GAME_TABLE_DATA / 'plate_appearances.parquet', filters=game_filters)
+    df_game_dictionary = pd.read_csv(GAME_TABLE_DATA / 'data_dictionary.csv')
+    game_table_scope = f'{GAME_START} through {GAME_END}'
+else:
+    game_examples = ROOT / 'datasets/2026/game_table_examples'
+    df_pitch_events = pd.read_csv(game_examples / 'pitch_events.csv', parse_dates=['game_date'])
+    df_plate_appearances = pd.read_csv(game_examples / 'plate_appearances.csv', parse_dates=['game_date'])
+    df_game_dictionary = pd.read_csv(game_examples / 'data_dictionary.csv')
+    game_table_scope = 'small versioned review sample; install the full tables to use the date filters'
+print(f'Game tables: {game_table_scope}; {len(df_pitch_events):,} events, {len(df_plate_appearances):,} completed PA')
+
+# %% Pitch events retain count, pitch type, pitch result, and source provenance
+df_pitch_events[[
+    'game_date', 'game_pk', 'at_bat_number', 'pitch_number', 'batter', 'pitcher',
+    'balls', 'strikes', 'pitch_type', 'description', 'pitch_type_eligible',
+]].head(20)
+
+# %% One completed PA per row; matchup and count flags are explicit
+df_plate_appearances[[
+    'game_date', 'game_pk', 'at_bat_number', 'batter', 'pitcher', 'ending_pitcher',
+    'terminal_event', 'pa_outcome', 'outcome_eligible', 'exclusion_reason',
+]].head(20)
+
+# %% Audit first, then choose eligibility filters before any future model work
+df_plate_appearances.groupby(['pa_outcome', 'outcome_eligible']).size()
+# Same-pitch velocity/location/results and future-game fields are not inputs
+# for selecting that pitch. The dictionary documents field availability.
+# Full-season player profiles are not joined to these historical event rows.
+
 # %% Your analysis
 # Example expressions to uncomment, run, and modify:
 # df_hitters_min_pa[["player_name", "pa", "k_percent", "bb_percent"]].head(20)

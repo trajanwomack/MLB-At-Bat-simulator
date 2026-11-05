@@ -191,6 +191,24 @@ def clean_exports(inputs: list[Path], output: Path) -> dict:
         frames.append(frame)
         sources.append(metadata)
     frame = pd.concat(frames, ignore_index=True)
+    pitches, pas, rejected, report = clean_pitch_records(frame)
+    report["inputs"] = sources
+    output.mkdir(parents=True, exist_ok=True)
+    pitches.reset_index(drop=True).to_parquet(output / "pitches.parquet", index=False)
+    pas.to_parquet(output / "plate_appearances.parquet", index=False)
+    rejected.reset_index(drop=True).to_parquet(output / "rejected_rows.parquet", index=False)
+    (output / "quality_report.json").write_text(json.dumps(report, indent=2) + "\n")
+    return report
+
+
+def clean_pitch_records(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
+    """Normalize one complete batch of PA groups without writing any files.
+
+    Expects the string/null/provenance representation produced by read_export.
+    Caller is responsible for detecting keys or games split across batches.
+    """
+    frame = frame.copy()
+    input_rows = len(frame)
     raw_columns = sorted(c for c in frame if not c.startswith("_"))
     # Detect source conflicts before numeric coercion could erase differing bad values.
     exact_duplicates = frame.duplicated(subset=raw_columns)
@@ -237,27 +255,32 @@ def clean_exports(inputs: list[Path], output: Path) -> dict:
         & ~pitches["is_automatic_event"])
     bad_pas = set(rejected.loc[rejected[PA_KEY].notna().all(axis=1), PA_KEY]
                   .itertuples(index=False, name=None))
-    appearances = []
-    for key, group in pitches.groupby(PA_KEY, sort=True):
-        last = group.iloc[-1]
-        terminal = group.loc[group["events"].isin(OUTCOMES)]
-        completed = len(terminal) == 1 and terminal.index[0] == group.index[-1]
-        sequence_complete = group["pitch_number"].tolist() == list(range(1, len(group) + 1))
-        stable_matchup = group["batter"].nunique() == 1 and group["pitcher"].nunique() == 1
-        status = ("completed" if completed else "ambiguous_terminal_events"
-                  if len(terminal) else "interrupted_or_unresolved")
-        appearances.append({"game_pk": int(key[0]), "at_bat_number": int(key[1]),
-            "game_date": group.iloc[0]["game_date"], "batter": int(last["batter"]),
-            "pitcher": int(last["pitcher"]), "recorded_pitches": len(group),
-            "terminal_event": last["events"] if completed else pd.NA,
-            "outcome": OUTCOMES[str(last["events"])] if completed else pd.NA,
-            "status": status, "sequence_complete": sequence_complete,
-            "stable_matchup": stable_matchup, "has_rejected_rows": key in bad_pas,
-            "outcome_eligible": completed and sequence_complete and stable_matchup and key not in bad_pas})
+    groups = pitches.groupby(PA_KEY, sort=True)
+    first = pitches.drop_duplicates(PA_KEY, keep="first").set_index(PA_KEY).sort_index()
+    last = pitches.drop_duplicates(PA_KEY, keep="last").set_index(PA_KEY).sort_index()
+    sizes = groups.pitch_number.agg(["size", "min", "max"])
+    terminal_counts = pitches.assign(_terminal=pitches.events.isin(OUTCOMES)).groupby(PA_KEY)._terminal.sum()
+    completed = terminal_counts.eq(1) & last.events.isin(OUTCOMES)
+    # Accepted positive pitch numbers are unique within a PA after duplicate/key
+    # checks above. min=1 and max=size therefore prove contiguous numbering.
+    sequence_complete = sizes["min"].eq(1) & sizes["max"].eq(sizes["size"])
+    stable_matchup = groups[["batter", "pitcher"]].nunique().eq(1).all(axis=1)
+    pas = last[["batter", "pitcher"]].copy()
+    pas["game_date"] = first.game_date
+    pas["recorded_pitches"] = sizes["size"]
+    pas["terminal_event"] = last.events.where(completed)
+    pas["outcome"] = pas.terminal_event.map(OUTCOMES)
+    pas["status"] = pd.Series("interrupted_or_unresolved", index=pas.index, dtype="string")
+    pas.loc[terminal_counts.gt(0), "status"] = "ambiguous_terminal_events"
+    pas.loc[completed, "status"] = "completed"
+    pas["sequence_complete"] = sequence_complete
+    pas["stable_matchup"] = stable_matchup
+    pas["has_rejected_rows"] = pas.index.isin(bad_pas)
+    pas["outcome_eligible"] = completed & sequence_complete & stable_matchup & ~pas.has_rejected_rows
     pa_columns = ["game_pk", "at_bat_number", "game_date", "batter", "pitcher",
         "recorded_pitches", "terminal_event", "outcome", "status", "sequence_complete",
         "stable_matchup", "has_rejected_rows", "outcome_eligible"]
-    pas = pd.DataFrame(appearances, columns=pa_columns)
+    pas = pas.reset_index()[pa_columns]
     for column in ["game_pk", "at_bat_number", "batter", "pitcher", "recorded_pitches"]:
         pas[column] = pas[column].astype("Int64")
     for column in ["terminal_event", "outcome", "status"]:
@@ -269,7 +292,7 @@ def clean_exports(inputs: list[Path], output: Path) -> dict:
                          for reason in value.split(";"))
     observed_events = set(pitches["events"].dropna())
     report = {
-        "schema_version": 1, "inputs": sources, "input_rows": sum(s["rows"] for s in sources),
+        "schema_version": 1, "input_rows": input_rows,
         "clean_pitch_rows": len(pitches), "rejected_rows": len(rejected),
         "exact_duplicate_rows_removed": exact_duplicate_count,
         "conflicting_key_rows_quarantined": int(conflicts.sum()),
@@ -293,9 +316,4 @@ def clean_exports(inputs: list[Path], output: Path) -> dict:
             "These outputs include post-pitch fields: never use the whole table as model features.",
             "Repeated records are removed; differing records with the same key are all quarantined."]}
     assert report["input_rows"] == len(pitches) + len(rejected) + exact_duplicate_count
-    output.mkdir(parents=True, exist_ok=True)
-    pitches.reset_index(drop=True).to_parquet(output / "pitches.parquet", index=False)
-    pas.to_parquet(output / "plate_appearances.parquet", index=False)
-    rejected.reset_index(drop=True).to_parquet(output / "rejected_rows.parquet", index=False)
-    (output / "quality_report.json").write_text(json.dumps(report, indent=2) + "\n")
-    return report
+    return pitches.reset_index(drop=True), pas, rejected.reset_index(drop=True), report

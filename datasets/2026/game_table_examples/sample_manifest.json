@@ -1,0 +1,12 @@
+{
+  "scope": "Small review sample of complete PA groups; not a training dataset",
+  "game_date": "2026-03-25",
+  "pitch_event_rows": 94,
+  "completed_pa_rows": 25,
+  "full_season_pitch_rows": 716792,
+  "full_season_completed_pa_rows": 183849,
+  "source_table_sha256": {
+    "pitch_events.parquet": "a6930a710cfddc373db25394bb76bd3cc923f6267d2dbfd111efd38ac535d5df",
+    "plate_appearances.parquet": "94a040e67db8127940f4a72d92316bb60e65dfdc6abb3b0005039fffe6640d72"
+  }
+}

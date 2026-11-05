@@ -14,6 +14,7 @@ from .pitcher_exports import clean_pitcher_exports
 from .hitter_exports import clean_hitter_exports, KINDS as HITTER_KINDS
 from .pitch_selection import compare_pitch_frequencies, load_pitch_baseline, write_pitch_baseline
 from .hitter_outcomes import compare_outcome_frequencies, load_hitter_baseline, write_hitter_baseline
+from .game_tables import build_game_tables
 
 
 def main(argv=None) -> int:
@@ -28,6 +29,9 @@ def main(argv=None) -> int:
     clean = commands.add_parser("clean", help="Clean exports and write Parquet tables plus a quality report")
     clean.add_argument("--input", type=Path, nargs="+", required=True, help="CSV files or directories of CSV files")
     clean.add_argument("--output", type=Path, required=True)
+    game_tables = commands.add_parser('build-game-tables', help='Build pitch events and completed PA tables before modeling')
+    game_tables.add_argument('--input', type=Path, required=True, help='Daily raw CSV directory, combined CSV, or season ZIP')
+    game_tables.add_argument('--output', type=Path, required=True, help='New version directory; existing output is not overwritten')
     pitchers = commands.add_parser("clean-pitchers", help="Archive and clean an uploaded pitcher-season summary")
     pitchers.add_argument("--input", type=Path, required=True)
     pitchers.add_argument("--raw-output", type=Path, default=Path("data/raw/pitcher_seasons/stats.csv"))
@@ -72,7 +76,12 @@ def main(argv=None) -> int:
     sample_pa.add_argument("--output", type=Path, help="Optional directory for sample, comparison, and seed metadata")
     args = parser.parse_args(argv)
     try:
-        if args.command == "fetch":
+        if args.command == 'build-game-tables':
+            report = build_game_tables(args.input, args.output,
+                progress=lambda item: print(json.dumps(item), flush=True))
+            print(json.dumps({'games': report['games'], **report['counts']}, indent=2))
+            print(f'Game tables and quality report: {args.output}')
+        elif args.command == "fetch":
             manifests = fetch_dates(args.start, args.end, args.output)
             print(json.dumps({"daily_files": len(manifests), "rows": sum(m["rows"] for m in manifests)}))
         elif args.command == "sample":

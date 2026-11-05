@@ -29,6 +29,7 @@ You can browse the versioned CSVs immediately, before setup:
 - `datasets/2026/views/pitch_arsenal_types.csv`: 3,174 pitcher–pitch-type rows.
 - `datasets/2026/baselines/`: pitch-selection probabilities and repertoire coverage.
 - `datasets/2026/baselines/hitter_outcomes/`: hitter PA outcome probabilities and profiles.
+- `datasets/2026/game_table_examples/`: small pitch-event and completed-PA review tables.
 - `datasets/2026/pitchers/` and `datasets/2026/hitters/`: original inputs.
 - `notebooks/01_data_review.ipynb`: a guided view of the tables and flags.
 - `exploratory analysis.py`: run cells for EDA, pitch sampling, and hitter PA outcomes.
@@ -41,8 +42,31 @@ The setup script builds pitcher and hitter statistical baselines; no ML model is
 The first milestone is a traceable Baseball Savant dataset for next-pitch
 prediction and batter–pitcher outcome statistics. This repository currently
 provides ingestion, conservative cleaning, quality reports, exploratory analysis,
-and reusable pitch-selection and hitter-outcome baselines. It does not fit an ML model or run a
+game-log tables, and reusable pitch-selection and hitter-outcome baselines. It does not fit an ML model or run a
 web application yet.
+
+## Game-log tables before modeling
+
+The season logs now produce two main typed tables: `pitch_events.parquet`
+(716,792 records) and `plate_appearances.parquet` (183,849 completed PA).
+Automatic events remain visible. Starting matchup/context, ending IDs, terminal
+outcomes, and eligibility/review flags are explicit. Audit files explain 439
+unresolved PA groups and 69 completed PA requiring review; no outcome is invented.
+
+With the raw season archive downloaded, run:
+
+```bash
+python -m mlb_at_bat.cli build-game-tables --input data/raw/statcast_2026_regular_season.zip --output data/processed/game_logs_2026
+```
+
+Or extract the separately supplied `game_logs_2026_tables.zip` into
+`data/processed/game_logs_2026/`. The game-table cells in `exploratory analysis.py`
+load a week by date, or explicitly use the small versioned review example if
+full tables are absent. Large raw/derived data remains outside Git. These are
+analysis foundations, not automatically selected model features or training splits.
+
+See [the table definitions and reading instructions](docs/game-tables.md) and
+[the season-table audit](reports/game-tables-2026.md).
 
 ## Pitch-selection baseline
 

@@ -1,0 +1,78 @@
+{
+  "archive_bytes": 108916547,
+  "archive_crc_check": "passed",
+  "archive_filename": "game_logs_2026_tables.zip",
+  "archive_sha256": "99d0f6164c350f0fb52cd88d84e50d390647b5ef72196a7e3ad647bc7fe5bcc3",
+  "code_sha256": {
+    "src/mlb_at_bat/data.py": "31001a7d38fa7c8e8e8cd425cd98a530606024592ed1656b6f46a822a43f706b",
+    "src/mlb_at_bat/game_tables.py": "2c1654fc0336226880bf3f9bd6906eb90c35960a6a892dbbf677744e18f4c00a"
+  },
+  "counts": {
+    "count_sequence_mismatch_groups": 1,
+    "eligible_pa_rows": 183780,
+    "eligible_pitch_type_rows": 714102,
+    "exact_duplicates_removed": 0,
+    "input_rows": 716792,
+    "mid_pa_matchup_changes": 68,
+    "nonzero_start_counts": 0,
+    "pa_exclusions": 508,
+    "pa_groups": 184288,
+    "pitch_events": 716792,
+    "plate_appearances": 183849,
+    "rejected_rows": 0,
+    "unverified_count_groups": 0
+  },
+  "data_versioned_in_git": false,
+  "first_game_date": "2026-03-25",
+  "games": 2429,
+  "last_game_date": "2026-09-27",
+  "main_tables": {
+    "pitch_events": {
+      "columns": 130,
+      "rows": 716792
+    },
+    "plate_appearances": {
+      "columns": 48,
+      "rows": 183849
+    }
+  },
+  "notes": [
+    "PA start context and terminal outcomes are separate; source details retained.",
+    "439 unresolved PA groups receive no invented label; 69 completed PA are flagged for review.",
+    "Eligibility is conservative and does not select the final model feature set.",
+    "No full-season profile joins, historical feature generation, train/test split, or model fitting performed."
+  ],
+  "numeric_parse_issues": {},
+  "original_raw_hashes_verified": true,
+  "output_sha256": {
+    "data_dictionary.csv": "9dacff26e585b241cdd07d38be30b02ccc5efa3dc4409c57a7405457d8c892fd",
+    "pa_exclusions.parquet": "b59b2d5a8cb90cdfdaaedb763cd8986764e3283187fe870da45f51622cfe82ed",
+    "pitch_events.parquet": "a6930a710cfddc373db25394bb76bd3cc923f6267d2dbfd111efd38ac535d5df",
+    "plate_appearances.parquet": "94a040e67db8127940f4a72d92316bb60e65dfdc6abb3b0005039fffe6640d72",
+    "rejected_rows.parquet": "4a6e769c0803decf90e2da16d3114b4d5443076760ade82b2e2de290fb262c92"
+  },
+  "pa_exclusion_reasons": {
+    "count_sequence_mismatch": 1,
+    "mid_pa_matchup_change": 68,
+    "no_unambiguous_terminal_outcome": 439,
+    "unmapped_source_event": 329
+  },
+  "pa_outcomes": {
+    "double": 7493,
+    "hit_by_pitch": 2118,
+    "home_run": 5575,
+    "other_pa_outcome": 84845,
+    "single": 26110,
+    "strikeout": 40700,
+    "triple": 671,
+    "walk": 16337
+  },
+  "pa_statuses": {
+    "completed": 183849,
+    "interrupted_or_unresolved": 439
+  },
+  "published_output_hashes_verified": true,
+  "schema_version": 1,
+  "season": 2026,
+  "source_acquisition_report": "reports/2026-season-acquisition.json"
+}

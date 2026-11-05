@@ -28,6 +28,13 @@ hitter. The profiles retain counts, reconciliation checks, and sample-size
 flags. The residual outcome is not classified as an out. See
 `docs/hitter-outcomes.md` for reproduction and interpretation.
 
+`2026/game_table_examples/` provides a small, explicitly labeled review sample:
+94 pitch/event rows belonging to 25 completed PA, their column dictionary, and
+a manifest tying the examples to the full generated table hashes. These are
+CSV views for inspection, not training data. The full typed Parquet tables are
+provided separately; see `docs/game-tables.md`. The analysis script labels
+sample mode when the full tables have not been installed locally.
+
 `SHA256SUMS.json` verifies the included input, manifest, and snapshot bytes.
 Run `python scripts/setup_workspace.py` from the repository root to install
 dependencies, verify archives and snapshots, regenerate cleaned tables and
