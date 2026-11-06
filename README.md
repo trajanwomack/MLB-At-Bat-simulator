@@ -59,14 +59,73 @@ With the raw season archive downloaded, run:
 python -m mlb_at_bat.cli build-game-tables --input data/raw/statcast_2026_regular_season.zip --output data/processed/game_logs_2026
 ```
 
-Or extract the separately supplied `game_logs_2026_tables.zip` into
-`data/processed/game_logs_2026/`. The game-table cells in `exploratory analysis.py`
+Alternatively, install the existing tables from the versioned release below.
+The game-table cells in `exploratory analysis.py`
 load a week by date, or explicitly use the small versioned review example if
 full tables are absent. Large raw/derived data remains outside Git. These are
 analysis foundations, not automatically selected model features or training splits.
 
 See [the table definitions and reading instructions](docs/game-tables.md) and
 [the season-table audit](reports/game-tables-2026.md).
+
+### Download and install the versioned tables
+
+**Publication pending:** the archive is verified and the release is prepared,
+but this cloud session's GitHub Releases API access currently returns Forbidden.
+The following versioned links become available when publication succeeds.
+
+Data release: [game-logs-2026-v1.0.0](https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/tag/game-logs-2026-v1.0.0).
+Download [game_logs_2026_tables.zip](https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/download/game-logs-2026-v1.0.0/game_logs_2026_tables.zip)
+through the browser, or use GitHub CLI from the repository root:
+
+```bash
+gh release download game-logs-2026-v1.0.0 --repo trajanwomack/MLB-At-Bat-simulator --pattern game_logs_2026_tables.zip --dir data/downloads
+```
+
+The ZIP is **108,916,547 bytes**, with SHA-256
+`99d0f6164c350f0fb52cd88d84e50d390647b5ef72196a7e3ad647bc7fe5bcc3`.
+It is a Release asset, outside the Git tree. The release also supplies the
+archive checksum, a checksum list for every member, and the original
+`game-tables-2026.json` report. The checksum lists and release notes are
+versioned under `releases/game-logs-2026-v1.0.0/`.
+
+For a browser download, save the ZIP in `data/downloads/`. Use Python 3.12
+to run this block from the repository root (it can be pasted into a temporary
+Python file or a VS Code Python cell). It verifies the entire archive and the
+reported table hashes before extracting all included files. The destination
+must not exist, so an existing installation is never overwritten:
+
+```python
+from pathlib import Path
+import hashlib
+import json
+import zipfile
+
+archive = Path("data/downloads/game_logs_2026_tables.zip")
+report = json.loads(Path("reports/game-tables-2026.json").read_text())
+target = Path("data/processed/game_logs_2026")
+if target.exists():
+    raise FileExistsError("Preserve the existing directory or choose a new destination.")
+with archive.open("rb") as stream:
+    actual = hashlib.file_digest(stream, "sha256").hexdigest()
+if archive.stat().st_size != report["archive_bytes"] or actual != report["archive_sha256"]:
+    raise ValueError("Archive size/checksum mismatch; do not extract.")
+with zipfile.ZipFile(archive) as bundle:
+    for name, expected in report["output_sha256"].items():
+        with bundle.open(name) as stream:
+            if hashlib.file_digest(stream, "sha256").hexdigest() != expected:
+                raise ValueError(f"Included file checksum mismatch: {name}")
+    if bundle.testzip() is not None:
+        raise ValueError("Archive integrity check failed.")
+    bundle.extractall(target)
+print(f"Verified and installed tables in {target}")
+```
+
+Run `python scripts/setup_workspace.py` if dependencies are not installed,
+select `.venv` in VS Code, then run the game-table cells in
+`exploratory analysis.py`. Installing this snapshot does not regenerate the
+dataset or require another Savant download. Large data under `data/` stays
+ignored by Git.
 
 ## Pitch-selection baseline
 
