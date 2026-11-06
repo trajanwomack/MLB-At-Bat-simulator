@@ -1,0 +1,44 @@
+{
+  "tag": "game-logs-2026-v1.0.0",
+  "release_id": 436076372,
+  "release_url": "https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/tag/game-logs-2026-v1.0.0",
+  "published_at": "2026-11-06T05:06:31Z",
+  "target_commit": "04ca878d326218a1687ea7e22b3c43ddc7f65a7f",
+  "archive_download_url": "https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/download/game-logs-2026-v1.0.0/game_logs_2026_tables.zip",
+  "archive_sha256": "99d0f6164c350f0fb52cd88d84e50d390647b5ef72196a7e3ad647bc7fe5bcc3",
+  "archive_bytes": 108916547,
+  "download_roundtrip_verified": true,
+  "all_seven_archive_members_verified": true,
+  "transfer_workflow_url": "https://github.com/trajanwomack/MLB-At-Bat-simulator/actions/runs/42166153827",
+  "temporary_transport_assets_removed": true,
+  "assets": [
+    {
+      "id": 715956706,
+      "name": "game-tables-2026.json",
+      "size": 2753,
+      "digest": "sha256:bb757a5d17d317c248552cd08a326c95eeb06cdd66df376a3fecbc432f1fc1cb",
+      "browser_download_url": "https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/download/game-logs-2026-v1.0.0/game-tables-2026.json"
+    },
+    {
+      "id": 715956671,
+      "name": "game_logs_2026_tables.files.sha256",
+      "size": 603,
+      "digest": "sha256:9d865562334e8710bf2b8f97fd977734b0934c815c10d6428936ce05cd93c6cd",
+      "browser_download_url": "https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/download/game-logs-2026-v1.0.0/game_logs_2026_tables.files.sha256"
+    },
+    {
+      "id": 715975989,
+      "name": "game_logs_2026_tables.zip",
+      "size": 108916547,
+      "digest": "sha256:99d0f6164c350f0fb52cd88d84e50d390647b5ef72196a7e3ad647bc7fe5bcc3",
+      "browser_download_url": "https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/download/game-logs-2026-v1.0.0/game_logs_2026_tables.zip"
+    },
+    {
+      "id": 715951005,
+      "name": "game_logs_2026_tables.zip.sha256",
+      "size": 92,
+      "digest": "sha256:a4e6039748ee6413ecc145aacafdcfca26591d5ed53b977242468dd59a5218fc",
+      "browser_download_url": "https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/download/game-logs-2026-v1.0.0/game_logs_2026_tables.zip.sha256"
+    }
+  ]
+}

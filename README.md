@@ -70,10 +70,6 @@ See [the table definitions and reading instructions](docs/game-tables.md) and
 
 ### Download and install the versioned tables
 
-**Publication pending:** the release draft has been created, but GitHub's upload
-server has rejected asset authentication. The dataset download links below
-become available after the verified ZIP is uploaded and the draft is published.
-
 Data release: [game-logs-2026-v1.0.0](https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/tag/game-logs-2026-v1.0.0).
 Download [game_logs_2026_tables.zip](https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/download/game-logs-2026-v1.0.0/game_logs_2026_tables.zip)
 through the browser, or use GitHub CLI from the repository root:
@@ -88,6 +84,10 @@ It is a Release asset, outside the Git tree. The release also supplies the
 archive checksum, a checksum list for every member, and the original
 `game-tables-2026.json` report. The checksum lists and release notes are
 versioned under `releases/game-logs-2026-v1.0.0/`.
+
+The published asset was downloaded from GitHub and verified byte-for-byte,
+including all seven archive members. The [publication record](releases/game-logs-2026-v1.0.0/publication.json)
+records its asset URLs, sizes, checksums, and verification status.
 
 For a browser download, save the ZIP in `data/downloads/`. Use Python 3.12
 to run this block from the repository root (it can be pasted into a temporary
