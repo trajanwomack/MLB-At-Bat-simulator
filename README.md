@@ -70,9 +70,9 @@ See [the table definitions and reading instructions](docs/game-tables.md) and
 
 ### Download and install the versioned tables
 
-**Publication pending:** the archive is verified and the release is prepared,
-but this cloud session's GitHub Releases API access currently returns Forbidden.
-The following versioned links become available when publication succeeds.
+**Publication pending:** the release draft has been created, but GitHub's upload
+server has rejected asset authentication. The dataset download links below
+become available after the verified ZIP is uploaded and the draft is published.
 
 Data release: [game-logs-2026-v1.0.0](https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/tag/game-logs-2026-v1.0.0).
 Download [game_logs_2026_tables.zip](https://github.com/trajanwomack/MLB-At-Bat-simulator/releases/download/game-logs-2026-v1.0.0/game_logs_2026_tables.zip)
