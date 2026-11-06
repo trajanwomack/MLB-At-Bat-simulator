@@ -1,0 +1,123 @@
+name: Transfer original 2026 game-log release ZIP
+
+on:
+  push:
+    branches: [release-upload-game-logs-2026-v1]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: original-game-logs-2026-release-transfer
+  cancel-in-progress: false
+
+jobs:
+  transfer:
+    if: github.repository == 'trajanwomack/MLB-At-Bat-simulator'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Reassemble verified transport bytes and upload original ZIP
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+          import tempfile
+          from urllib.parse import urlencode, urlparse
+          from urllib.request import Request, urlopen
+          import zipfile
+
+          repo = os.environ['GH_REPO']
+          release_id = 436076372
+          name = 'game_logs_2026_tables.zip'
+          expected_hash = '99d0f6164c350f0fb52cd88d84e50d390647b5ef72196a7e3ad647bc7fe5bcc3'
+          expected_size = 108916547
+          transport_name = 'game_logs_2026_transport_manifest.json'
+          headers = {
+              'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+              'Accept': 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'User-Agent': 'MLBAtBatSimulator-OriginalDataTransfer',
+          }
+
+          def api(path, method='GET'):
+              with urlopen(Request('https://api.github.com/repos/' + repo + path,
+                                   headers=headers, method=method), timeout=60) as response:
+                  body = response.read()
+                  return json.loads(body) if body else None
+
+          def digest(path):
+              with path.open('rb') as stream:
+                  return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+          release = api('/releases/' + str(release_id))
+          assert release['draft'], 'Keep release in draft until independent download verification'
+          assert release['target_commitish'] == '04ca878d326218a1687ea7e22b3c43ddc7f65a7f'
+          assets = {asset['name']: asset for asset in release['assets']}
+          with tempfile.TemporaryDirectory(prefix='original-zip-transfer-') as temp:
+              temp = Path(temp)
+
+              def download(asset, filename):
+                  path = temp / filename
+                  with path.open('wb') as output:
+                      subprocess.run(['gh', 'api', 'repos/' + repo + '/releases/assets/' + str(asset['id']),
+                                      '--header', 'Accept: application/octet-stream'], stdout=output, check=True)
+                  assert path.stat().st_size == asset['size']
+                  assert asset.get('digest') == 'sha256:' + digest(path)
+                  return path
+
+              if name not in assets:
+                  manifest = json.loads(download(assets[transport_name], 'transport.json').read_text())
+                  assert manifest['archive_name'] == name
+                  assert manifest['archive_sha256'] == expected_hash
+                  assert manifest['archive_bytes'] == expected_size
+                  archive = temp / name
+                  with archive.open('wb') as output:
+                      for number, part in enumerate(manifest['parts'], 1):
+                          assert part['name'] == name + '.part-' + format(number, '04d')
+                          path = download(assets[part['name']], 'part.bin')
+                          assert path.stat().st_size == part['size'] and digest(path) == part['sha256']
+                          with path.open('rb') as stream:
+                              shutil.copyfileobj(stream, output, 1024 * 1024)
+                          path.unlink()
+                  assert archive.stat().st_size == expected_size and digest(archive) == expected_hash
+                  report = json.loads(download(assets['game-tables-2026.json'], 'report.json').read_text())
+                  assert report['archive_sha256'] == expected_hash and report['archive_bytes'] == expected_size
+                  checksum_path = download(assets['game_logs_2026_tables.files.sha256'], 'members.sha256')
+                  checksums = {line.split('  ', 1)[1]: line.split('  ', 1)[0]
+                               for line in checksum_path.read_text().splitlines()}
+                  with zipfile.ZipFile(archive) as bundle:
+                      assert bundle.testzip() is None
+                      assert set(bundle.namelist()) == set(checksums)
+                      for member, expected in checksums.items():
+                          with bundle.open(member) as stream:
+                              assert hashlib.file_digest(stream, 'sha256').hexdigest() == expected
+                      for member, expected in report['output_sha256'].items():
+                          assert checksums[member] == expected
+                  upload = release['upload_url'].split('{', 1)[0]
+                  assert urlparse(upload).scheme == 'https' and urlparse(upload).hostname == 'uploads.github.com'
+                  with archive.open('rb') as stream:
+                      request = Request(upload + '?' + urlencode({'name': name}), data=stream,
+                                        headers={**headers, 'Content-Type': 'application/zip',
+                                                 'Content-Length': str(expected_size)}, method='POST')
+                      with urlopen(request, timeout=240) as response:
+                          assets[name] = json.loads(response.read())
+              canonical = assets[name]
+              assert canonical['state'] == 'uploaded' and canonical['size'] == expected_size
+              assert canonical.get('digest') == 'sha256:' + expected_hash
+              for asset_name, asset in assets.items():
+                  if asset_name.startswith(name + '.part-') or asset_name == transport_name:
+                      api('/releases/assets/' + str(asset['id']), method='DELETE')
+              print('Original ZIP uploaded with its exact original SHA-256:', expected_hash)
+              print('Temporary transport chunks removed. Release remains draft for final verification.')
+          PY
